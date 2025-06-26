@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.so
+*.egg-info/
+*.eggs/
+*.log
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+Pipfile.lock
+
+# VS Code
+.vscode/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Migrations (if using Alembic or similar)
+migrations/
+
+# Pytest cache
+.pytest_cache/
+.coverage
+
+# Environment variables
+.env
+.env.*
+
+# MyPy
+.mypy_cache/
+
+# FastAPI generated OpenAPI docs cache
+openapi.json
+
+# Docker
+*.dockerfile
+docker-compose.override.yml
