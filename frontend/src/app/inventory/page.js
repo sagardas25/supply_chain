@@ -1,3 +1,122 @@
+// 'use client';
+
+// import { useEffect, useState } from 'react';
+// import Link from 'next/link';
+// import { Button } from '@/components/ui/button';
+// import { Card, CardContent } from '@/components/ui/card';
+// import {
+//   Table,
+//   TableBody,
+//   TableCell,
+//   TableHead,
+//   TableHeader,
+//   TableRow,
+// } from '@/components/ui/table';
+// import { toast } from 'sonner';
+
+// export default function InventoryPage() {
+//   const [items, setItems] = useState([]);
+//   const [loading, setLoading] = useState(true);
+
+//   const fetchItems = async () => {
+//     try {
+//       const res = await fetch('https://walmart-api-latest.onrender.com/inventory/');
+//       const data = await res.json();
+//       setItems(data);
+//     } catch (err) {
+//       console.error('Failed to fetch inventory:', err);
+//       toast.error('Failed to fetch inventory');
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchItems();
+//   }, []);
+
+//   const handleDelete = async (id) => {
+//     const confirmed = confirm('Are you sure you want to delete this item?');
+//     if (!confirmed) return;
+
+//     try {
+//       const res = await fetch(`https://walmart-api-latest.onrender.com/inventory/${id}`, {
+//         method: 'DELETE',
+//       });
+
+//       if (!res.ok) throw new Error('Delete failed');
+
+//       toast.success('Item deleted successfully');
+//       fetchItems(); // refresh list
+//     } catch (err) {
+//       console.error('Failed to delete item:', err);
+//       toast.error('Failed to delete item');
+//     }
+//   };
+
+//   return (
+//     <div className="p-6 space-y-6">
+//       <div className="flex justify-between items-center">
+//         <h1 className="text-3xl font-bold">Inventory Items</h1>
+//         <Link href="/inventory/create">
+//           <Button className="rounded-xl">+ Add New Item</Button>
+//         </Link>
+//       </div>
+
+//       <Card className="shadow-md">
+//         <CardContent className="p-4">
+//           {loading ? (
+//             <p className="text-muted-foreground">Loading...</p>
+//           ) : items.length === 0 ? (
+//             <p className="text-muted-foreground">No items found.</p>
+//           ) : (
+//             <Table>
+//               <TableHeader>
+//                 <TableRow>
+//                   <TableHead>ID</TableHead>
+//                   <TableHead>Name</TableHead>
+//                   <TableHead>Brand</TableHead>
+//                   <TableHead>Quantity</TableHead>
+//                   <TableHead>Category</TableHead>
+//                   <TableHead className="text-right">Actions</TableHead>
+//                 </TableRow>
+//               </TableHeader>
+//               <TableBody>
+//                 {items.map((item) => (
+//                   <TableRow key={item.id}>
+//                     <TableCell>{item.id}</TableCell>
+//                     <TableCell>{item.name}</TableCell>
+//                     <TableCell>{item.brand}</TableCell>
+//                     <TableCell>{item.quantity}</TableCell>
+//                     <TableCell>{item.category}</TableCell>
+//                     <TableCell className="text-right space-x-2">
+//                       <Link href={`/inventory/${item.id}`}>
+//                         <Button className="hover:bg-gray-400" variant="secondary" size="sm">View</Button>
+//                       </Link>
+//                       <Link href={`/inventory/${item.id}/edit`}>
+//                         <Button className="hover:bg-gray-600" size="sm">Edit</Button>
+//                       </Link>
+//                       <Button
+//                         size="sm"
+//                         variant="destructive"
+//                         onClick={() => handleDelete(item.id)}
+//                         className="hover:bg-red-800"
+//                       >
+//                         Delete
+//                       </Button>
+//                     </TableCell>
+//                   </TableRow>
+//                 ))}
+//               </TableBody>
+//             </Table>
+//           )}
+//         </CardContent>
+//       </Card>
+//     </div>
+//   );
+// }
+
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -10,32 +129,57 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
 } from '@/components/ui/table';
+import { toast } from 'sonner';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 export default function InventoryPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
+
+  const fetchItems = async () => {
+    try {
+      const res = await fetch('https://walmart-api-latest.onrender.com/inventory/');
+      const data = await res.json();
+      setItems(data);
+    } catch (err) {
+      console.error('Failed to fetch inventory:', err);
+      toast.error('Failed to fetch inventory');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const res = await fetch("https://walmart-api-latest.onrender.com/inventory/");
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-        const data = await res.json();
-        setItems(data);
-      } catch (err) {
-        console.error("API fetch failed:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-  
-    fetchData();
+    fetchItems();
   }, []);
-  
+
+  const handleDeleteClick = (id) => {
+    setSelectedId(id);
+    setShowConfirm(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      const res = await fetch(`https://walmart-api-latest.onrender.com/inventory/${selectedId}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) throw new Error('Delete failed');
+
+      toast.success('Item deleted successfully');
+      fetchItems(); // refresh list
+    } catch (err) {
+      console.error('Failed to delete item:', err);
+      toast.error('Failed to delete item');
+    } finally {
+      setShowConfirm(false);
+      setSelectedId(null);
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -61,7 +205,7 @@ export default function InventoryPage() {
                   <TableHead>Brand</TableHead>
                   <TableHead>Quantity</TableHead>
                   <TableHead>Category</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -72,13 +216,21 @@ export default function InventoryPage() {
                     <TableCell>{item.brand}</TableCell>
                     <TableCell>{item.quantity}</TableCell>
                     <TableCell>{item.category}</TableCell>
-                    <TableCell className="text-right space-x-2">
+                    <TableCell className="text-center space-x-2">
                       <Link href={`/inventory/${item.id}`}>
-                        <Button variant="secondary" size="sm">View</Button>
+                        <Button className="hover:bg-gray-400" variant="secondary" size="sm">View</Button>
                       </Link>
                       <Link href={`/inventory/${item.id}/edit`}>
-                        <Button size="sm">Edit</Button>
+                        <Button className="hover:bg-gray-600" size="sm">Edit</Button>
                       </Link>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDeleteClick(item.id)}
+                        className="hover:bg-red-800"
+                      >
+                        Delete
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -87,6 +239,13 @@ export default function InventoryPage() {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={showConfirm}
+        onCancel={() => setShowConfirm(false)}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }
+
