@@ -1,6 +1,7 @@
 from typing import List, Union
 
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from models.database import get_db, init_db
@@ -18,6 +19,14 @@ app = FastAPI(
     title="Walmart Supply Chain API",
     description="API for managing Walmart's supply chain inventory",
     version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for simplicity, adjust in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
 )
 
 # Initialize database tables
