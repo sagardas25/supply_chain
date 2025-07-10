@@ -9,7 +9,8 @@ from models.schemas import (
     InventoryItemResponse,
     UpdateItemSchema,
     StockTransactionCreate,
-    StockTransactionResponse
+    StockTransactionResponse,
+    InventoryStats
 )
 from services.inventory import InventoryService
 
@@ -66,14 +67,16 @@ def get_inventory_item(
 
 @app.get("/inventory/", response_model=List[InventoryItemResponse], tags=["Inventory"])
 def list_inventory_items(
+    low_stock: bool = False,
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db)
 ):
     """
-    List all inventory items with pagination.
+    List all inventory items with pagination, optionally filtering for low stock items.
 
     Parameters:
+    - low_stock: If True, returns items with stock below their alert threshold (default: False)
     - skip: Number of items to skip (default: 0)
     - limit: Maximum number of items to return (default: 100)
     
@@ -81,6 +84,8 @@ def list_inventory_items(
     - List[InventoryItemResponse]: List of inventory items
     """
     inventory_service = InventoryService(db)
+    if low_stock:
+        return inventory_service.get_low_stock_items(skip=skip, limit=limit)
     return inventory_service.list_items(skip=skip, limit=limit)
 
 @app.put("/inventory/{item_id}", response_model=InventoryItemResponse, tags=["Inventory"])
@@ -98,14 +103,29 @@ def update_inventory_item(
     
     Returns:
     - InventoryItemResponse: Updated inventory item details
-    
-    Raises:
-    - HTTPException 404: If item not found
     """
     inventory_service = InventoryService(db)
     return inventory_service.update_item(item_id, item)
 
-@app.post("/inventory/transactions/", response_model=StockTransactionResponse, tags=["Transactions"])
+@app.delete("/inventory/{item_id}", status_code=204, tags=["Inventory"])
+def delete_inventory_item(
+    item_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Delete an inventory item.
+
+    Parameters:
+    - item_id: ID of the inventory item to delete
+    
+    Returns:
+    - HTTP 204 No Content on successful deletion
+    """
+    inventory_service = InventoryService(db)
+    inventory_service.delete_item(item_id)
+    return
+
+@app.post("/stock/transaction/", response_model=StockTransactionResponse, tags=["Stock"])
 def create_stock_transaction(
     transaction: StockTransactionCreate,
     db: Session = Depends(get_db)
@@ -125,3 +145,16 @@ def create_stock_transaction(
     """
     inventory_service = InventoryService(db)
     return inventory_service.create_transaction(transaction)
+
+@app.get("/inventory/stats/", response_model=InventoryStats, tags=["Inventory"])
+def get_inventory_stats(
+    db: Session = Depends(get_db)
+):
+    """
+    Get inventory statistics.
+    
+    Returns:
+    - InventoryStats: Statistics about the inventory
+    """
+    inventory_service = InventoryService(db)
+    return inventory_service.get_inventory_stats()

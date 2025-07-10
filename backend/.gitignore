@@ -43,3 +43,6 @@ openapi.json
 # Docker
 *.dockerfile
 docker-compose.override.yml
+
+# Database files
+inventory.db

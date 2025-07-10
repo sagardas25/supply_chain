@@ -99,15 +99,22 @@ class StockTransactionResponse(BaseSchema):
     timestamp: datetime
 
 
+# Stock Alert Schema
 class StockAlert(BaseSchema):
-    """Schema for stock alerts."""
+    """Schema for stock alerts"""
 
-    type: str
     item_id: int
+    item_name: str
+    current_stock: int
+    alert_type: AlertType
+    details: str
 
 
+# Inventory Statistics Schema
 class InventoryStats(BaseSchema):
-    """Schema for inventory statistics."""
+    """Schema for inventory statistics"""
+
     total_items: int
     total_stock: int
-    total_value: float
+    low_stock_items: int
+    out_of_stock_items: int

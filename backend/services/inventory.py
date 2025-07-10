@@ -69,6 +69,12 @@ class InventoryService:
         self.db.refresh(item)
         return item
 
+    def delete_item(self, item_id: int):
+        """Delete an inventory item."""
+        item = self._get_item_or_404(item_id)
+        self.db.delete(item)
+        self.db.commit()
+
     def create_transaction(self, transaction_data: StockTransactionCreate) -> StockTransaction:
         """Create a stock transaction and update inventory."""
         item = self._get_item_or_404(transaction_data.item_id)
@@ -98,39 +104,40 @@ class InventoryService:
             performed_by=transaction_data.performed_by
         )
 
-        # Update item stock
-        item.current_stock = new_stock
-
-        # Save changes
         self.db.add(transaction)
+        item.current_stock = new_stock
         self.db.commit()
         self.db.refresh(transaction)
-        
         return transaction
 
-    def get_stock_alerts(self) -> List[StockAlert]:
-        """Get stock alerts for inventory items."""
-        items = self.db.query(InventoryItem).all()
-        alerts = []
-
-        for item in items:
-            if item.current_stock <= item.min_stock_threshold:
-                alerts.append(StockAlert(type="LOW_STOCK", item_id=item.id))
-            elif item.current_stock == 0:
-                alerts.append(StockAlert(type="OUT_OF_STOCK", item_id=item.id))
-            elif item.current_stock > item.max_stock_threshold:
-                alerts.append(StockAlert(type="OVERSTOCK", item_id=item.id))
-
-        return alerts
+    def get_low_stock_items(self, skip: int = 0, limit: int = 100) -> List[InventoryItem]:
+        """Get items where current stock is below the minimum threshold."""
+        return (
+            self.db.query(InventoryItem)
+            .filter(InventoryItem.current_stock < InventoryItem.min_stock_threshold)
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
 
     def get_inventory_stats(self) -> InventoryStats:
         """Get inventory statistics."""
-        total_items = self.db.query(InventoryItem).count()
-        total_stock = self.db.query(InventoryItem).with_entities(func.sum(InventoryItem.current_stock)).scalar()
-        total_value = self.db.query(InventoryItem).with_entities(func.sum(InventoryItem.price * InventoryItem.current_stock)).scalar()
+        total_items = self.db.query(func.count(InventoryItem.id)).scalar()
+        total_stock = self.db.query(func.sum(InventoryItem.current_stock)).scalar() or 0
+        low_stock_items = (
+            self.db.query(func.count(InventoryItem.id))
+            .filter(InventoryItem.current_stock < InventoryItem.min_stock_threshold)
+            .scalar()
+        )
+        out_of_stock_items = (
+            self.db.query(func.count(InventoryItem.id))
+            .filter(InventoryItem.current_stock == 0)
+            .scalar()
+        )
 
         return InventoryStats(
             total_items=total_items,
             total_stock=total_stock,
-            total_value=total_value
+            low_stock_items=low_stock_items,
+            out_of_stock_items=out_of_stock_items,
         )

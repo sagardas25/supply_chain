@@ -33,7 +33,7 @@ class BaseModel(Base):
 class InventoryItem(BaseModel):
     __tablename__ = "inventory_items"
 
-    walmart_item_id = Column(String, primary_key=True, index=True)
+    walmart_item_id = Column(String, unique=True, index=True)
     name = Column(String, index=True)
     brand = Column(String)
     category = Column(String, index=True)
