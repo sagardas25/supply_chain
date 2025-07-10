@@ -97,3 +97,17 @@ class StockTransactionResponse(BaseSchema):
     reason: str | None = None
     performed_by: str | None = None
     timestamp: datetime
+
+
+class StockAlert(BaseSchema):
+    """Schema for stock alerts."""
+
+    type: str
+    item_id: int
+
+
+class InventoryStats(BaseSchema):
+    """Schema for inventory statistics."""
+    total_items: int
+    total_stock: int
+    total_value: float
