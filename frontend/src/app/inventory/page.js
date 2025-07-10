@@ -58,7 +58,7 @@ export default function InventoryPage() {
                 <TableRow>
                   <TableHead>ID</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead>SKU</TableHead>
+                  <TableHead>Brand</TableHead>
                   <TableHead>Quantity</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -69,7 +69,7 @@ export default function InventoryPage() {
                   <TableRow key={item.id}>
                     <TableCell>{item.id}</TableCell>
                     <TableCell>{item.name}</TableCell>
-                    <TableCell>{item.sku}</TableCell>
+                    <TableCell>{item.brand}</TableCell>
                     <TableCell>{item.quantity}</TableCell>
                     <TableCell>{item.category}</TableCell>
                     <TableCell className="text-right space-x-2">
