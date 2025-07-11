@@ -3,6 +3,14 @@ from datetime import datetime, timezone
 from enum import Enum
 
 
+class Store(str, Enum):
+    KOLKATA = "Kolkata"
+    ASANSOL = "Asansol"
+    DURGAPUR = "Durgapur"
+    SILIGURI = "Siliguri"
+    HOWRAH = "Howrah"
+
+
 class TransactionType(str, Enum):
     IN = "IN"
     OUT = "OUT"
@@ -27,7 +35,7 @@ class BaseItemSchema(BaseSchema):
     name: str
     brand: str | None = None
     category: str
-    quantity: int
+    quantity: int = Field(ge=0, description="Quantity cannot be negative")
     unit: str = "pieces"
     price: float = Field(gt=0, description="Price must be postive")
     current_stock: int = Field(ge=0, description="Stock cannot be negative")
@@ -51,12 +59,12 @@ class UpdateItemSchema(BaseItemSchema):
     name: str | None = None
     brand: str | None = None
     category: str | None = None
-    quantity: int | None = None
+    quantity: int | None = Field(default=None, ge=0, description="Quantity cannot be negative")
     unit: str | None = None
-    price: float | None = None
-    current_stock: int | None = None
-    min_stock_threshold: int | None = None
-    max_stock_threshold: int | None = None
+    price: float | None = Field(default=None, gt=0, description="Price must be postive")
+    current_stock: int | None = Field(default=None, ge=0, description="Stock cannot be negative")
+    min_stock_threshold: int | None = Field(default=None, ge=0)
+    max_stock_threshold: int | None = Field(default=None, gt=0)
 
 
 class InventoryItemResponse(BaseItemSchema):
@@ -118,3 +126,45 @@ class InventoryStats(BaseSchema):
     total_stock: int
     low_stock_items: int
     out_of_stock_items: int
+
+
+# Forecasting Schemas
+class ForecastInputSingleDay(BaseModel):
+    item: str
+    store: Store
+    date: str  # YYYY-MM-DD
+
+
+class ForecastOutputSingleDay(BaseModel):
+    date: str
+    store: Store
+    item: str
+    predicted_units_sold: int
+
+
+class ForecastInputMonthly(BaseModel):
+    store: Store
+    year: int
+    month: int
+
+
+class ForecastOutputMonthly(BaseModel):
+    item: str
+    forecasted_units: int
+
+
+class ForecastInputDateRange(BaseModel):
+    start_date: str  # YYYY-MM-DD
+    end_date: str  # YYYY-MM-DD
+
+
+class ForecastOutputDateRange(BaseModel):
+    date: datetime
+    store_id: Store
+    item_id: str
+    predicted_units: float
+
+
+class ForecastInputSingleDayAllStores(BaseModel):
+    item: str
+    date: str  # YYYY-MM-DD

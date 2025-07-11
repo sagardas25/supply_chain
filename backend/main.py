@@ -11,9 +11,17 @@ from models.schemas import (
     UpdateItemSchema,
     StockTransactionCreate,
     StockTransactionResponse,
-    InventoryStats
+    InventoryStats,
+    ForecastInputSingleDay,
+    ForecastOutputSingleDay,
+    ForecastInputMonthly,
+    ForecastOutputMonthly,
+    ForecastInputDateRange,
+    ForecastOutputDateRange,
+    ForecastInputSingleDayAllStores,
 )
 from services.inventory import InventoryService
+from services.forecasting import ForecastingService
 
 app = FastAPI(
     title="Walmart Supply Chain API",
@@ -167,3 +175,73 @@ def get_inventory_stats(
     """
     inventory_service = InventoryService(db)
     return inventory_service.get_inventory_stats()
+
+# Forecasting Endpoints
+@app.post("/forecast/single-day", response_model=ForecastOutputSingleDay, tags=["Forecasting"])
+def forecast_single_day(
+    forecast_input: ForecastInputSingleDay,
+):
+    """
+    Forecasts sales for a single item, in a single store on a specific day.
+    """
+    forecasting_service = ForecastingService()
+    return forecasting_service.forecast_item_store_single_day(
+        item=forecast_input.item,
+        store=forecast_input.store,
+        date_str=forecast_input.date,
+    )
+
+@app.post("/forecast/monthly", response_model=List[ForecastOutputMonthly], tags=["Forecasting"])
+def forecast_monthly(
+    forecast_input: ForecastInputMonthly,
+):
+    """
+    Forecasts monthly sales for all items in a specific store.
+    """
+    forecasting_service = ForecastingService()
+    result_df = forecasting_service.forecast_monthly_demand_for_store(
+        store=forecast_input.store,
+        year=forecast_input.year,
+        month=forecast_input.month,
+    )
+    return result_df.to_dict(orient="records")
+
+
+@app.post("/forecast/date-range", response_model=List[ForecastOutputDateRange], tags=["Forecasting"])
+def forecast_date_range(
+    forecast_input: ForecastInputDateRange,
+):
+    """
+    Forecasts sales for all items and stores over a given date range.
+    """
+    forecasting_service = ForecastingService()
+    result_df = forecasting_service.forecast_date_range(
+        start_date=forecast_input.start_date,
+        end_date=forecast_input.end_date,
+    )
+    return result_df.to_dict(orient="records")
+
+
+@app.post("/forecast/single-day-all-stores", response_model=List[ForecastOutputSingleDay], tags=["Forecasting"])
+def forecast_single_day_all_stores(
+    forecast_input: ForecastInputSingleDayAllStores,
+):
+    """
+    Forecasts sales for a single item across all stores on a specific day.
+    """
+    forecasting_service = ForecastingService()
+    return forecasting_service.forecast_item_single_day_all_stores(
+        item=forecast_input.item,
+        date_str=forecast_input.date,
+    )
+
+
+@app.post("/forecast/reload-model", tags=["Forecasting"])
+def reload_model():
+    """
+    Reloads the forecasting model from disk.
+    """
+    ForecastingService._model = None
+    ForecastingService._X_columns = None
+    ForecastingService.get_model()
+    return {"message": "Forecasting model reloaded successfully"}
