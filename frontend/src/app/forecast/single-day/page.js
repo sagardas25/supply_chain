@@ -104,7 +104,7 @@ export default function SingleDayForecastPage() {
                   <TableCell>{forecastResult.item}</TableCell>
                   <TableCell>{forecastResult.store}</TableCell>
                   <TableCell>{forecastResult.date}</TableCell>
-                  <TableCell>{forecastResult.predicted_units_sold}</TableCell>
+                  <TableCell className="text-green-500 " >{forecastResult.predicted_units_sold}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>

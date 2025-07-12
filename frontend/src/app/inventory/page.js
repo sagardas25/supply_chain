@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -11,9 +11,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { toast } from 'sonner';
-import ConfirmDialog from '@/components/ConfirmDialog';
+} from "@/components/ui/table";
+import { toast } from "sonner";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 export default function InventoryPage() {
   const [items, setItems] = useState([]);
@@ -23,12 +23,14 @@ export default function InventoryPage() {
 
   const fetchItems = async () => {
     try {
-      const res = await fetch('https://walmart-api-latest.onrender.com/inventory/');
+      const res = await fetch(
+        "https://walmart-api-latest.onrender.com/inventory/"
+      );
       const data = await res.json();
       setItems(data);
     } catch (err) {
-      console.error('Failed to fetch inventory:', err);
-      toast.error('Failed to fetch inventory');
+      console.error("Failed to fetch inventory:", err);
+      toast.error("Failed to fetch inventory");
     } finally {
       setLoading(false);
     }
@@ -45,17 +47,20 @@ export default function InventoryPage() {
 
   const handleConfirmDelete = async () => {
     try {
-      const res = await fetch(`https://walmart-api-latest.onrender.com/inventory/${selectedId}`, {
-        method: 'DELETE',
-      });
+      const res = await fetch(
+        `https://walmart-api-latest.onrender.com/inventory/${selectedId}`,
+        {
+          method: "DELETE",
+        }
+      );
 
-      if (!res.ok) throw new Error('Delete failed');
+      if (!res.ok) throw new Error("Delete failed");
 
-      toast.success('Item deleted successfully');
+      toast.success("Item deleted successfully");
       fetchItems(); // refresh list
     } catch (err) {
-      console.error('Failed to delete item:', err);
-      toast.error('Failed to delete item');
+      console.error("Failed to delete item:", err);
+      toast.error("Failed to delete item");
     } finally {
       setShowConfirm(false);
       setSelectedId(null);
@@ -64,11 +69,24 @@ export default function InventoryPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <h1 className="text-3xl font-bold">Inventory Items</h1>
-        <Link href="/inventory/create">
-          <Button className="rounded-xl">+ Add New Item</Button>
-        </Link>
+        <div className="flex gap-3">
+        <Link href="/forecast">
+  <Button
+    className="rounded-xl bg-blue-500 text-white hover:bg-blue-700 shadow-md hover:shadow-lg transition-all"
+  >
+    Go to Forecasting
+  </Button>
+</Link>
+
+
+          <Link href="/inventory/create">
+            <Button className="rounded-xl shadow-md hover:shadow-lg">
+              + Add New Item
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <Card className="shadow-md">
@@ -99,10 +117,18 @@ export default function InventoryPage() {
                     <TableCell>{item.category}</TableCell>
                     <TableCell className="text-center space-x-2">
                       <Link href={`/inventory/${item.id}`}>
-                        <Button className="hover:bg-gray-400" variant="secondary" size="sm">View</Button>
+                        <Button
+                          className="hover:bg-gray-400"
+                          variant="secondary"
+                          size="sm"
+                        >
+                          View
+                        </Button>
                       </Link>
                       <Link href={`/inventory/${item.id}/edit`}>
-                        <Button className="hover:bg-gray-600" size="sm">Edit</Button>
+                        <Button className="hover:bg-gray-600" size="sm">
+                          Edit
+                        </Button>
                       </Link>
                       <Button
                         size="sm"
@@ -129,4 +155,3 @@ export default function InventoryPage() {
     </div>
   );
 }
-
