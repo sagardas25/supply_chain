@@ -55,7 +55,7 @@ export default function SingleDayForecastPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 h-[100vh] ">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Single-Day Forecast</h1>
       </div>
